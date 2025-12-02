@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversor EUI-64 | MAC & IPv6</title>
+    
+    <!-- Fonte Inter para tipografia moderna -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Ícones Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'slide-up': 'slideUp 0.5s ease-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Estilos adicionais para Glassmorphism e detalhes finos */
+        body {
+            background-color: #0f172a;
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+            min-height: 100vh;
+        }
+        
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .input-group:focus-within label {
+            color: #60a5fa;
+        }
+
+        .input-group:focus-within input {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Hide scrollbar for clean look */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155; 
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="text-slate-200 flex items-center justify-center p-4 sm:p-6">
+
+    <main class="w-full max-w-2xl animate-slide-up">
+        
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center p-3 bg-brand-600/20 rounded-2xl mb-4 ring-1 ring-brand-500/30">
+                <i data-lucide="network" class="w-8 h-8 text-brand-500"></i>
+            </div>
+            <h1 class="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">Conversor EUI-64</h1>
+            <p class="text-slate-400">Converta endereços MAC para IPv6 Link-Local e vice-versa instantaneamente.</p>
+        </div>
+
+        <!-- Main Card -->
+        <div class="glass-panel rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
+            
+            <!-- Tabs / Mode Switcher -->
+            <div class="flex p-1 bg-slate-800/80 rounded-xl mb-8 relative">
+                <div id="tab-indicator" class="absolute h-[calc(100%-8px)] w-[calc(50%-4px)] top-1 left-1 bg-brand-600 rounded-lg transition-all duration-300 shadow-lg"></div>
+                
+                <button onclick="switchMode('mac-to-ipv6')" class="flex-1 relative z-10 py-2.5 text-sm font-semibold text-white transition-colors duration-200 flex items-center justify-center gap-2">
+                    <i data-lucide="arrow-right-left" class="w-4 h-4"></i>
+                    MAC p/ IPv6
+                </button>
+                <button onclick="switchMode('ipv6-to-mac')" class="flex-1 relative z-10 py-2.5 text-sm font-semibold text-slate-400 hover:text-white transition-colors duration-200 flex items-center justify-center gap-2">
+                    <i data-lucide="arrow-left-right" class="w-4 h-4"></i>
+                    IPv6 p/ MAC
+                </button>
+            </div>
+
+            <!-- Content Area -->
+            <div id="converter-content">
+                
+                <!-- Input Section -->
+                <div class="mb-6 input-group transition-all duration-300">
+                    <label id="input-label" class="block text-sm font-medium text-slate-400 mb-2 ml-1 transition-colors">Endereço MAC (Ex: AA:BB:CC:00:11:22)</label>
+                    <div class="relative">
+                        <input type="text" id="input-value" 
+                            class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-4 pl-4 pr-12 text-slate-100 placeholder-slate-600 font-mono text-lg focus:outline-none transition-all"
+                            placeholder="00:00:00:00:00:00"
+                            autocomplete="off">
+                        
+                        <button onclick="pasteFromClipboard()" class="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-500 hover:text-brand-400 hover:bg-slate-800 rounded-lg transition-colors" title="Colar">
+                            <i data-lucide="clipboard" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    <p id="error-msg" class="text-red-400 text-xs mt-2 ml-1 hidden flex items-center gap-1">
+                        <i data-lucide="alert-circle" class="w-3 h-3"></i> <span>Formato inválido</span>
+                    </p>
+                </div>
+
+                <!-- Action Button -->
+                <button onclick="convert()" class="w-full bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-500 hover:to-brand-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-brand-900/50 transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2 group">
+                    <span>Converter Agora</span>
+                    <i data-lucide="zap" class="w-5 h-5 group-hover:text-yellow-300 transition-colors"></i>
+                </button>
+
+                <!-- Result Section (Hidden initially) -->
+                <div id="result-container" class="mt-8 pt-8 border-t border-slate-700/50 hidden animate-fade-in">
+                    <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Resultados</h3>
+                    
+                    <!-- Result 1 -->
+                    <div class="mb-4">
+                        <div class="flex justify-between items-end mb-1">
+                            <span id="res-label-1" class="text-xs text-brand-400 font-medium">Link-Local Address (fe80::)</span>
+                        </div>
+                        <div class="group relative bg-slate-900/80 rounded-xl border border-slate-700/50 hover:border-brand-500/50 transition-colors">
+                            <div id="result-1" class="font-mono text-slate-200 p-4 break-all select-all"></div>
+                            <button onclick="copyToClipboard('result-1')" class="absolute right-2 top-2 p-2 bg-slate-800 text-slate-400 rounded-lg opacity-0 group-hover:opacity-100 hover:text-white hover:bg-brand-600 transition-all shadow-lg">
+                                <i data-lucide="copy" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Result 2 (Only visible for MAC->IPv6 usually, but structured for both) -->
+                    <div id="secondary-result-box" class="mb-4">
+                        <div class="flex justify-between items-end mb-1">
+                            <span id="res-label-2" class="text-xs text-brand-400 font-medium">Interface ID (EUI-64)</span>
+                        </div>
+                        <div class="group relative bg-slate-900/80 rounded-xl border border-slate-700/50 hover:border-brand-500/50 transition-colors">
+                            <div id="result-2" class="font-mono text-slate-200 p-4 break-all select-all"></div>
+                            <button onclick="copyToClipboard('result-2')" class="absolute right-2 top-2 p-2 bg-slate-800 text-slate-400 rounded-lg opacity-0 group-hover:opacity-100 hover:text-white hover:bg-brand-600 transition-all shadow-lg">
+                                <i data-lucide="copy" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="text-center mt-8 text-slate-500 text-sm">
+            <p>O processo envolve inverter o 7º bit e inserir FFFE.</p>
+        </footer>
+
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-emerald-600 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 z-50">
+        <i data-lucide="check-circle" class="w-5 h-5"></i>
+        <span class="font-medium">Copiado para a área de transferência!</span>
+    </div>
+
+    <script>
+        // Inicializa ícones
+        lucide.createIcons();
+
+        let currentMode = 'mac-to-ipv6';
+        
+        const elements = {
+            inputLabel: document.getElementById('input-label'),
+            input: document.getElementById('input-value'),
+            tabIndicator: document.getElementById('tab-indicator'),
+            resultContainer: document.getElementById('result-container'),
+            result1: document.getElementById('result-1'),
+            result2: document.getElementById('result-2'),
+            label1: document.getElementById('res-label-1'),
+            label2: document.getElementById('res-label-2'),
+            secondaryBox: document.getElementById('secondary-result-box'),
+            errorMsg: document.getElementById('error-msg')
+        };
+
+        function switchMode(mode) {
+            currentMode = mode;
+            elements.resultContainer.classList.add('hidden');
+            elements.input.value = '';
+            elements.errorMsg.classList.add('hidden');
+            elements.input.classList.remove('border-red-500', 'text-red-400');
+
+            if (mode === 'mac-to-ipv6') {
+                // Animação Tab
+                elements.tabIndicator.style.transform = 'translateX(0)';
+                elements.tabIndicator.style.width = 'calc(50% - 4px)';
+                
+                // Labels
+                elements.inputLabel.innerText = 'Endereço MAC (Ex: AA:BB:CC:00:11:22)';
+                elements.input.placeholder = '00:00:00:00:00:00';
+                
+            } else {
+                // Animação Tab
+                elements.tabIndicator.style.transform = 'translateX(100%)';
+                elements.tabIndicator.style.width = 'calc(50%)'; // leve ajuste visual
+
+                // Labels
+                elements.inputLabel.innerText = 'Endereço IPv6 (Ex: fe80::200:5eff:fe00:5322)';
+                elements.input.placeholder = 'fe80::...';
+            }
+        }
+
+        async function pasteFromClipboard() {
+            try {
+                const text = await navigator.clipboard.readText();
+                elements.input.value = text;
+                convert();
+            } catch (err) {
+                showToast('Erro ao colar. Permissão negada?', true);
+            }
+        }
+
+        function cleanHex(str) {
+            return str.replace(/[^0-9a-fA-F]/g, '').toLowerCase();
+        }
+
+        function convert() {
+            const rawInput = elements.input.value.trim();
+            elements.errorMsg.classList.add('hidden');
+            elements.input.classList.remove('border-red-500', 'text-red-400');
+
+            if (!rawInput) return;
+
+            if (currentMode === 'mac-to-ipv6') {
+                processMacToIpv6(rawInput);
+            } else {
+                processIpv6ToMac(rawInput);
+            }
+        }
+
+        function showError(msg) {
+            elements.errorMsg.querySelector('span').innerText = msg;
+            elements.errorMsg.classList.remove('hidden');
+            elements.input.classList.add('border-red-500', 'text-red-400');
+            elements.resultContainer.classList.add('hidden');
+        }
+
+        // ---------------- LOGIC: MAC -> IPv6 ----------------
+        function processMacToIpv6(input) {
+            const hex = cleanHex(input);
+
+            if (hex.length !== 12) {
+                showError('Endereço MAC inválido. Deve conter 12 caracteres hexadecimais.');
+                return;
+            }
+
+            // Split into bytes
+            let bytes = [];
+            for(let i=0; i<12; i+=2) {
+                bytes.push(parseInt(hex.substr(i, 2), 16));
+            }
+
+            // EUI-64 Logic:
+            // 1. Invert 7th bit (Universal/Local) of the first byte
+            // Bit 7 is value 2 (0000 0010). XOR logic.
+            bytes[0] = bytes[0] ^ 0x02;
+
+            // 2. Insert FF FE in the middle (between 3rd and 4th byte of original MAC)
+            // Original: [0][1][2] | [3][4][5]
+            // New: [0][1][2] FF FE [3][4][5]
+            
+            const p1 = toHex(bytes[0]) + toHex(bytes[1]);
+            const p2 = toHex(bytes[2]) + 'ff';
+            const p3 = 'fe' + toHex(bytes[3]);
+            const p4 = toHex(bytes[4]) + toHex(bytes[5]);
+
+            const interfaceId = `${p1}:${p2}:${p3}:${p4}`;
+            const linkLocal = `fe80::${interfaceId}`;
+
+            // Render
+            elements.label1.innerText = "IPv6 Link-Local Completo";
+            elements.result1.innerText = linkLocal;
+            
+            elements.label2.innerText = "Interface ID (Sufixo EUI-64)";
+            elements.result2.innerText = interfaceId;
+            elements.secondaryBox.classList.remove('hidden');
+            
+            elements.resultContainer.classList.remove('hidden');
+        }
+
+        // ---------------- LOGIC: IPv6 -> MAC ----------------
+        function processIpv6ToMac(input) {
+            // Normalize input - we care about the last 64 bits (16 chars)
+            // However, IPv6 can be compressed (::).
+            // We need to expand it simply to find the suffix, or just look at the last parts.
+            
+            // Remove 'fe80::' or any prefix if present roughly to just focus on hex
+            // A robust way for EUI-64 reverse:
+            // 1. Look for 'fffe' or 'ff:fe' pattern in the middle of the Interface ID.
+            
+            let clean = cleanHex(input);
+            
+            // If full IPv6 (32 chars) or compressed, we assume the user gave us the EUI-64 part at the end.
+            // A MAC based EUI-64 must have 'fffe' in the middle of the last 64 bits.
+            // 64 bits = 16 hex chars.
+            
+            if (clean.length < 16) {
+                 // Try to see if it's just the interface ID segments provided
+                 // If less than 16 chars, it might be compressed with zeros, but EUI-64 usually isn't zero compressed in the MAC part often.
+                 // Let's assume input needs to be sufficient.
+            }
+
+            // Take the last 16 characters
+            const suffix = clean.slice(-16);
+            
+            if (suffix.length !== 16) {
+                showError('IPv6 inválido ou curto demais para extrair MAC.');
+                return;
+            }
+
+            // Check for FFFE in the middle (index 6 to 10 in the 16-char string)
+            // format: XXXX XXff feXX XXXX
+            const middle = suffix.substring(6, 10).toLowerCase();
+            
+            if (middle !== 'fffe') {
+                showError('Não parece ser um endereço EUI-64 baseado em MAC (Falta "fffe" no meio).');
+                return;
+            }
+
+            // Extract parts removing FFFE
+            // Prefix: chars 0-6 (3 bytes)
+            // Suffix: chars 10-16 (3 bytes)
+            const macHex = suffix.substring(0, 6) + suffix.substring(10, 16);
+            
+            // Convert to bytes to flip bit
+            let firstByte = parseInt(macHex.substring(0, 2), 16);
+            
+            // Invert 7th bit back
+            firstByte = firstByte ^ 0x02;
+            
+            const finalMacStr = toHex(firstByte) + macHex.substring(2);
+            
+            // Format MAC nicely XX:XX:XX...
+            const formattedMac = finalMacStr.match(/.{1,2}/g).join(':').toUpperCase();
+
+            // Render
+            elements.label1.innerText = "Endereço MAC Recuperado";
+            elements.result1.innerText = formattedMac;
+            
+            elements.secondaryBox.classList.add('hidden'); // No second result needed for this direction
+            elements.resultContainer.classList.remove('hidden');
+        }
+
+        // Helper: number to 2-char hex string
+        function toHex(num) {
+            return num.toString(16).padStart(2, '0');
+        }
+
+        // Toast & Copy Logic
+        function copyToClipboard(elementId) {
+            const text = document.getElementById(elementId).innerText;
+            
+            // Fallback for older browsers included implicitly, but modern API preferred
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Copiado com sucesso!');
+            });
+        }
+
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.querySelector('span').innerText = msg;
+            
+            if(isError) {
+                toast.classList.remove('bg-emerald-600');
+                toast.classList.add('bg-red-600');
+                toast.querySelector('i').setAttribute('data-lucide', 'alert-triangle');
+            } else {
+                toast.classList.remove('bg-red-600');
+                toast.classList.add('bg-emerald-600');
+                toast.querySelector('i').setAttribute('data-lucide', 'check-circle');
+            }
+            lucide.createIcons();
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // Input formatter (optional visual nicety)
+        elements.input.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') convert();
+        });
+
+    </script>
+</body>
+</html>
