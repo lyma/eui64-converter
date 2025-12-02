@@ -1,114 +1,112 @@
 <div align="center">
 
-<img src="https://www.google.com/search?q=https://img.shields.io/badge/Network-Tools-blue%3Fstyle%3Dfor-the-badge%26logo%3Dcisco%26logoColor%3Dwhite" alt="Network Tools" />
+<img src="https://img.shields.io/badge/Network-Tools-blue?style=for-the-badge&logo=cisco&logoColor=white" alt="Network Tools" />
 
-
-
-
-
-
-⚡ Conversor EUI-64 (MAC ↔ IPv6)
+# ⚡ Conversor EUI-64 (MAC ↔ IPv6)
 
 Uma ferramenta moderna, elegante e responsiva para engenheiros de rede e desenvolvedores.
 
 <p>
-<a href="#-funcionalidades">Funcionalidades</a> •
-<a href="#-tecnologias">Tecnologias</a> •
-<a href="#-como-usar">Como Usar</a> •
-<a href="#-lógica-eui-64">Lógica EUI-64</a>
+  <a href="#-funcionalidades">Funcionalidades</a> •
+  <a href="#-tecnologias">Tecnologias</a> •
+  <a href="#-como-usar">Como Usar</a> •
+  <a href="#-lógica-eui-64">Lógica EUI-64</a>
 </p>
 
 <img src="./preview.png" alt="Preview da Aplicação" width="800">
 
 </div>
 
+---
 
+## 📖 Sobre o Projeto
 
-📖 Sobre o Projeto
+Este projeto é uma aplicação web *Single Page Application* (SPA), leve e autônoma, projetada para converter endereços físicos (MAC) em endereços IPv6 Link-Local utilizando o padrão **EUI-64**, além de realizar o caminho inverso.
 
-Este projeto é uma aplicação web Single Page (SPA) leve e autônoma projetada para converter endereços físicos (MAC) em endereços IPv6 Link-Local usando o padrão EUI-64, e realizar o processo inverso.
+O foco principal é oferecer uma UI/UX moderna, utilizando conceitos como **Glassmorphism**, gradientes suaves e feedback visual intuitivo — fugindo do visual tradicional das ferramentas de rede.
 
-O foco principal foi criar uma UI/UX premium, utilizando conceitos de Glassmorphism, gradientes modernos e feedbacks visuais intuitivos, fugindo das ferramentas de rede com visual antigo.
+---
 
+## ✨ Funcionalidades
 
+### 🔄 Conversão Bidirecional
+- **MAC → IPv6:** Gera o endereço Link-Local (`fe80::`) e o *Interface ID* usando EUI-64.
+- **IPv6 → MAC:** Recupera o endereço MAC original a partir de um IPv6 EUI-64 válido.
 
-✨ Funcionalidades
+### 🎨 UI Moderna (Glassmorphism)
+Design sofisticado e translúcido com animações sutis.
 
-🔄 Conversão Bidirecional:
+### 📱 Totalmente Responsivo
+Funciona perfeitamente em **desktop**, **tablet** e **mobile**.
 
-MAC para IPv6: Gera o endereço Link-Local (fe80::) e o Interface ID.
+### 📋 Copiar e Colar Inteligente
+Botões dedicados com feedback visual (*toasts*).
 
-IPv6 para MAC: Recupera o MAC Address original a partir de um IPv6 EUI-64.
+### 🛡️ Validação em Tempo Real
+Detecta formatos inválidos e orienta o usuário imediatamente.
 
-🎨 UI Moderna (Glassmorphism): Design translúcido com fundo animado.
+### 🚀 Zero Dependências de Build
+Feito com **HTML5 puro** e **Tailwind via CDN**. Basta abrir o arquivo e usar.
 
-📱 Totalmente Responsivo: Funciona perfeitamente em Mobile, Tablet e Desktop.
+---
 
-📋 Copiar e Colar Inteligente: Botões dedicados para colar inputs e copiar resultados com feedback visual (Toasts).
+## 🛠 Tecnologias
 
-🛡️ Validação em Tempo Real: Verifica formatos inválidos e orienta o usuário.
+- **HTML5 Semântico** – Estrutura  
+- **Tailwind CSS (CDN)** – Estilização e layout  
+- **JavaScript Vanilla** – Conversão e manipulação de bits  
+- **Lucide Icons** – Ícones modernos  
+- **Fontes:** Inter & JetBrains Mono (Google Fonts)
 
-🚀 Zero Dependências de Build: Feito com HTML5 puro e Tailwind via CDN. Basta abrir e usar.
+---
 
+## 🚀 Como Usar
 
+### 1️⃣ Clone o repositório  
+git clone https://github.com/lyma/eui64-converter.git
 
-🛠 Tecnologias
-
-HTML5 Semântico: Estrutura da aplicação.
-Tailwind CSS (CDN): Estilização, sistema de grid e animações.
-JavaScript (Vanilla): Lógica de manipulação de bits e strings.
-Lucide Icons: Ícones vetoriais leves e modernos.
-Fontes: Inter & JetBrains Mono (Google Fonts).
-
-
-
-🚀 Como Usar
-
-Não é necessário instalar node_modules ou rodar servidores de build.
-
-Clone o repositório:
-
-git clone [https://github.com/lyma/eui64-converter.git](https://github.com/lyma/eui64-converter.git)
-
-
+### 2️⃣ Execute  
 Abra o arquivo:
-Navegue até a pasta e dê um duplo clique em index.html.
+
+index.html
+
 O navegador abrirá a ferramenta instantaneamente.
 
+---
 
+## 🧠 Lógica EUI-64
 
-🧠 Lógica EUI-64
+### 🔹 MAC ➡️ IPv6
+1. Divide o MAC em dois blocos de 24 bits (OUI e NIC).  
+2. Insere `FFFE` no meio.  
+3. Inverte o 7º bit do primeiro byte (bit U/L).  
+4. Adiciona o prefixo `fe80::`.
 
-Para fins educacionais, veja como a conversão é feita no código:
+### 🔹 IPv6 ➡️ MAC
+1. Verifica se o sufixo contém `fffe`.  
+2. Remove `fffe` para reconstruir o MAC.  
+3. Inverte novamente o 7º bit para restaurar o MAC original.
 
-MAC ➡️ IPv6
+---
 
-Divide o MAC em dois blocos de 24 bits (OUI e NIC Specific).
-Insere os bits FFFE (1111 1111 1111 1110) no meio.
-Inverte o 7º bit (Universal/Local bit) do primeiro byte.
-Adiciona o prefixo fe80::.
+## 🤝 Contribuição
 
-IPv6 ➡️ MAC
+1. Faça um fork  
+2. Crie uma branch:  
+git checkout -b feature/NovaFeature  
+3. Commit:  
+git commit -m "Add: Nova Feature"  
+4. Push:  
+git push origin feature/NovaFeature  
+5. Abra um Pull Request
 
-Verifica se o sufixo contém fffe no meio.
-Remove a parte fffe.
-Inverte o 7º bit novamente para restaurar o MAC original.
+---
 
+## 📄 Licença
 
-🤝 Contribuição
+MIT — Sinta-se livre para usar, estudar e modificar.
 
-Contribuições são bem-vindas! Se você tiver ideias para melhorar o design ou a lógica:
-Faça um Fork do projeto.
-Crie uma Branch (git checkout -b feature/NovaFeature).
-Dê commit (git commit -m 'Add: Nova Feature').
-Faça o Push (git push origin feature/NovaFeature).
-Abra um Pull Request.
-
-
-
-📄 Licença
-
-Este projeto está sob a licença MIT. Sinta-se livre para usar e modificar.
+---
 
 <div align="center">
 Feito com 💙 e ☕ por <a href="https://github.com/lyma">lyma</a>
